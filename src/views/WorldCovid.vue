@@ -1,5 +1,11 @@
 <template>
   <div class="text-center">
+    <loading
+      :active.sync="isLoading"
+      :can-cancel="false"
+      :is-full-page="fullPage"
+      :opacity="0.8"
+    ></loading>
     <h1 class="home-page-title">{{ pageTitle }}</h1>
 
     <div class="col-lg-6 col-md-6 col-sm-12 mx-auto">
@@ -13,49 +19,59 @@
                 class="h-100 mx-auto bcard shadow mb-2 rounded"
               >
                 <b-card-text class="text-left">
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Total Case:-
-                  {{indiaTotal}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Indian:-
-                  {{confirmedCasesIndian}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Foreigner:-
-                  {{confirmedCasesForeign}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="success"></b-icon>
-                  Discharged:-
-                  {{indianDischarged}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Deaths:-
-                  {{indianDeaths}}
+                  Total Case
+                  <h4>{{ worldDetails.cases }}</h4>
+                  New Cases
+                  <h4>{{ worldDetails.todayCases }}</h4>
+                  Deaths
+                  <h4>{{ worldDetails.deaths }}</h4>
+                  New Deaths
+                  <h4>{{ worldDetails.todayDeaths }}</h4>
+                  Critical
+                  <h4>{{ worldDetails.critical }}</h4>
+                  Recovered
+                  <h4>{{ worldDetails.recovered }}</h4>
+                  Active
+                  <h4>{{ worldDetails.active }}</h4>
                 </b-card-text>
               </b-card>
             </div>
           </router-link>
         </div>
       </div>
+      <br />
+      <p>
+        <i>
+          Source:-
+          <a href="https://www.worldometers.info/coronavirus"
+            >www.worldometers.info/coronavirus</a
+          >
+        </i>
+      </p>
     </div>
     <hr />
 
-    <h3 class="home-page-title">State Wise Statistics</h3>
+    <h3 class="home-page-title">Country Wise Statistics</h3>
     <div class="col-lg-5 col-sm-12 mx-auto">
       <b-form-input
         size="sm"
         class="mr-sm-2"
-        @keyup="searchState"
-        placeholder="Search your state"
-        v-model="stateName"
+        @keyup="searchCountry"
+        placeholder="Search your country"
+        v-model="countryName"
       ></b-form-input>
-      <b-button size="sm" class="mBtn" type="submit" @click="searchState">Search</b-button>
+      <b-button size="sm" class="mBtn" type="submit" @click="searchCountry"
+        >Search</b-button
+      >
     </div>
     <br />
     <div class="col-lg-12 col-md-12 col-sm-12 mx-auto">
       <div class="row mx-auto">
-        <div class="col-lg-3 col-md-6 col-sm-12" v-for="state in tempStates">
+        <div
+          class="col-lg-3 col-md-6 col-sm-12"
+          v-for="country in countryWiseDetails"
+          v-if="country.country != '' && country.country != 'World'"
+        >
           <div>
             <b-card
               tag="article"
@@ -63,22 +79,40 @@
               class="h-100 mx-auto shadow mb-2 rounded"
             >
               <b-card-text class="text-left">
-                <h6 class="text-center font-weight-bold">{{state.loc}}</h6>
-                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                <span class="font-weight-bold">Total Case:-</span>
-                {{state.totalConfirmed}}
+                <h6 class="text-center font-weight-bold">
+                  {{ country.country }}
+                </h6>
+                <b-icon icon="plus-circle-fill" variant="dark"></b-icon>&nbsp;
+                <span class="font-weight-bold">Total Cases:-</span>
+                {{ country.cases }}
                 <br />
-                <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                <span class="font-weight-bold">Conf. Cases:-</span>
-                {{state.totalConfirmed}}
+                <b-icon icon="plus-circle-fill" variant="warning"></b-icon
+                >&nbsp;
+                <span class="font-weight-bold">New Cases:-</span>
+                {{ country.todayCases }}
                 <br />
-                <b-icon icon="plus-circle-fill" variant="success"></b-icon>
-                <span class="font-weight-bold">Recovered:-</span>
-                {{state.discharged}}
-                <br />
-                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
+                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>&nbsp;
                 <span class="font-weight-bold">Deaths:-</span>
-                {{state.deaths}}
+                {{ country.deaths }}
+                <br />
+                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>&nbsp;
+                <span class="font-weight-bold">New Deaths:-</span>
+                {{ country.todayDeaths }}
+                <br />
+                <b-icon icon="plus-circle-fill" variant="warning"></b-icon
+                >&nbsp;
+                <span class="font-weight-bold">Critical:-</span>
+                {{ country.critical }}
+                <br />
+                <b-icon icon="plus-circle-fill" variant="success"></b-icon
+                >&nbsp;
+                <span class="font-weight-bold">Recovered:-</span>
+                {{ country.recovered }}
+                <br />
+                <b-icon icon="plus-circle-fill" variant="primary"></b-icon
+                >&nbsp;
+                <span class="font-weight-bold">Active:-</span>
+                {{ country.active }}
               </b-card-text>
             </b-card>
           </div>
@@ -90,30 +124,36 @@
 
 <script>
 import { mapState } from 'vuex'
+import Loading from 'vue-loading-overlay'
+// Import stylesheet
+import 'vue-loading-overlay/dist/vue-loading.css'
 
 export default {
   data() {
     return {
       pageTitle: 'GLobal Statistics',
-      worldTotal: null,
-      worldDeaths: null,
-      worldRecovered: null,
-      countryWiseDetails: [],
-      tempStates: null,
-      stateName: null
-      // api:'http://api.go/API/ParentApp/V1/'
+      worldDetails: [],
+      countryWiseDetails: null,
+      tempCountries: null,
+      countryName: null,
+      isLoading: false,
+      fullPage: true
     }
+  },
+  components: {
+    Loading
   },
   computed: mapState('app', ['appTitle']),
   created() {
+    this.showLoader()
     this.fetchGlobalDetails()
     this.fetchAllCountries()
   },
   methods: {
-    fetchWorldDetails() {
+    fetchGlobalDetails() {
       // console.log(process.env.VUE_APP_TITLE);
       var self = this
-      fetch('https://coronavirus-19-api.herokuapp.com/all')
+      fetch('https://coronavirus-19-api.herokuapp.com/countries/World')
         .then(function(response) {
           if (response.status !== 200) {
             console.log(
@@ -123,10 +163,7 @@ export default {
           }
           response.json().then(function(data) {
             console.log(data)
-            var worldOb = data
-            self.worldTotal = worldOb.cases
-            self.worldRecovered = worldOb.recovered
-            self.worldDeaths = worldOb.deaths
+            self.worldDetails = data
           })
         })
         .catch(function(err) {
@@ -145,25 +182,28 @@ export default {
             return
           }
           response.json().then(function(data) {
-            console.log(data)
-            // self.statewiseDetails = data.data.regional
-            // self.tempStates = data.data.regional
-            // var indianOb = data.data.summary
-            // self.indiaTotal = indianOb.total
-            // self.confirmedCasesIndian = indianOb.confirmedCasesIndian
-            // self.confirmedCasesForeign = indianOb.confirmedCasesForeign
-            // self.indianDischarged = indianOb.discharged
-            // self.indianDeaths = indianOb.deaths
+            // console.log(data)
+            self.countryWiseDetails = data
+            self.tempCountries = data
           })
         })
         .catch(function(err) {
           console.log('Fetch Error :-S', err)
         })
     },
-    searchState() {
-      this.tempStates = this.statewiseDetails.filter(state => {
-        return state.loc.toLowerCase().includes(this.stateName.toLowerCase())
+    searchCountry() {
+      this.countryWiseDetails = this.tempCountries.filter(country => {
+        return country.country
+          .toLowerCase()
+          .includes(this.countryName.toLowerCase())
       })
+    },
+    showLoader() {
+      this.isLoading = true
+      // simulate AJAX
+      setTimeout(() => {
+        this.isLoading = false
+      }, 3500)
     }
   }
 }

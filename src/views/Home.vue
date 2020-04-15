@@ -1,5 +1,6 @@
 <template>
   <div class="text-center">
+    <loading :active.sync="isLoading" :can-cancel="false" :is-full-page="fullPage" :opacity="0.8"></loading>
     <h1 class="home-page-title">{{ appTitle }}</h1>
 
     <div class="col-lg-7 col-md-7 col-sm-12 mx-auto">
@@ -14,26 +15,14 @@
                 class="h-100 mx-auto bcard shadow mb-2 rounded"
               >
                 <b-card-text class="text-left">
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Total Case:-
-                  {{indiaTotal}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Indian:-
-                  {{confirmedCasesIndian}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Foreigner:-
-                  {{confirmedCasesForeign}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="success"></b-icon>
-                  Discharged:-
-                  {{indianDischarged}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Deaths:-
-                  {{indianDeaths}}
-                  <br />
+                  Total Case
+                  <h4>{{ indiaDetails.cases }}</h4>New Cases
+                  <h4>{{ indiaDetails.todayCases }}</h4>Deaths
+                  <h4>{{ indiaDetails.deaths }}</h4>New Deaths
+                  <h4>{{ indiaDetails.todayDeaths }}</h4>Critical
+                  <h4>{{ indiaDetails.critical }}</h4>Recovered
+                  <h4>{{ indiaDetails.recovered }}</h4>Active
+                  <h4>{{ indiaDetails.active }}</h4>
                   <br />
                   <p class="text-center text-muted small">
                     <i>Tap to know more</i>
@@ -44,7 +33,7 @@
           </router-link>
         </div>
         <div class="col-lg-6 col-md-12 col-sm-12">
-          <router-link class="link" to="/india">
+          <router-link class="link" to="/world">
             <div>
               <b-card
                 title="Global Statistics"
@@ -53,18 +42,14 @@
                 class="h-100 mx-auto bcard shadow rounded"
               >
                 <b-card-text class="text-left">
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Total Case:-
-                  {{worldTotal}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="success"></b-icon>
-                  Recovered:-
-                  {{worldRecovered}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Deaths:-
-                  {{worldDeaths}}
-                  <br />
+                  Total Case
+                  <h4>{{ worldDetails.cases }}</h4>New Cases
+                  <h4>{{ worldDetails.todayCases }}</h4>Deaths
+                  <h4>{{ worldDetails.deaths }}</h4>New Deaths
+                  <h4>{{ worldDetails.todayDeaths }}</h4>Critical
+                  <h4>{{ worldDetails.critical }}</h4>Recovered
+                  <h4>{{ worldDetails.recovered }}</h4>Active
+                  <h4>{{ worldDetails.active }}</h4>
                   <br />
                   <p class="text-center text-muted small">
                     <i>Tap to know more</i>
@@ -75,30 +60,42 @@
           </router-link>
         </div>
       </div>
+      <br />
+      <br />
+      <p>
+        <i>
+          Source:-
+          <a
+            href="https://www.worldometers.info/coronavirus"
+          >www.worldometers.info/coronavirus</a>
+        </i>
+      </p>
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import Loading from 'vue-loading-overlay'
+// Import stylesheet
+import 'vue-loading-overlay/dist/vue-loading.css'
 
 export default {
   data() {
     return {
       msg: 'Welcome to Your Vue.js App',
-      indiaTotal: null,
-      confirmedCasesIndian: null,
-      confirmedCasesForeign: null,
-      indianDischarged: null,
-      indianDeaths: null,
-      worldTotal: null,
-      worldDeaths: null,
-      worldRecovered: null
-      // api:'http://api.go/API/ParentApp/V1/'
+      indiaDetails: null,
+      worldDetails: null,
+      isLoading: false,
+      fullPage: true
     }
+  },
+  components: {
+    Loading
   },
   computed: mapState('app', ['appTitle']),
   created() {
+    this.showLoader()
     this.fetchIndiaDetails()
     this.fetchWorldDetails()
   },
@@ -106,32 +103,7 @@ export default {
     fetchIndiaDetails() {
       // console.log(process.env.VUE_APP_TITLE);
       var self = this
-      fetch('https://api.rootnet.in/covid19-in/stats/latest')
-        .then(function(response) {
-          if (response.status !== 200) {
-            console.log(
-              'Looks like there was a problem. Status Code: ' + response.status
-            )
-            return
-          }
-          response.json().then(function(data) {
-            console.log(data.data.summary)
-            var indianOb = data.data.summary
-            self.indiaTotal = indianOb.total
-            self.confirmedCasesIndian = indianOb.confirmedCasesIndian
-            self.confirmedCasesForeign = indianOb.confirmedCasesForeign
-            self.indianDischarged = indianOb.discharged
-            self.indianDeaths = indianOb.deaths
-          })
-        })
-        .catch(function(err) {
-          console.log('Fetch Error :-S', err)
-        })
-    },
-    fetchWorldDetails() {
-      // console.log(process.env.VUE_APP_TITLE);
-      var self = this
-      fetch('https://coronavirus-19-api.herokuapp.com/all')
+      fetch('https://coronavirus-19-api.herokuapp.com/countries/India')
         .then(function(response) {
           if (response.status !== 200) {
             console.log(
@@ -141,15 +113,39 @@ export default {
           }
           response.json().then(function(data) {
             console.log(data)
-            var worldOb = data
-            self.worldTotal = worldOb.cases
-            self.worldRecovered = worldOb.recovered
-            self.worldDeaths = worldOb.deaths
+            self.indiaDetails = data
           })
         })
         .catch(function(err) {
           console.log('Fetch Error :-S', err)
         })
+    },
+    fetchWorldDetails() {
+      // console.log(process.env.VUE_APP_TITLE);
+      var self = this
+      fetch('https://coronavirus-19-api.herokuapp.com/countries/World')
+        .then(function(response) {
+          if (response.status !== 200) {
+            console.log(
+              'Looks like there was a problem. Status Code: ' + response.status
+            )
+            return
+          }
+          response.json().then(function(data) {
+            console.log(data)
+            self.worldDetails = data
+          })
+        })
+        .catch(function(err) {
+          console.log('Fetch Error :-S', err)
+        })
+    },
+    showLoader() {
+      this.isLoading = true
+      // simulate AJAX
+      setTimeout(() => {
+        this.isLoading = false
+      }, 2000)
     }
   }
 }

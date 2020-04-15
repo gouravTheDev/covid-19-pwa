@@ -1,5 +1,11 @@
 <template>
   <div class="text-center">
+    <loading
+      :active.sync="isLoading"
+      :can-cancel="false"
+      :is-full-page="fullPage"
+      :opacity="0.8"
+    ></loading>
     <h1 class="home-page-title">{{ pageTitle }}</h1>
 
     <div class="col-lg-6 col-md-6 col-sm-12 mx-auto">
@@ -13,25 +19,16 @@
                 class="h-100 mx-auto bcard shadow mb-2 rounded"
               >
                 <b-card-text class="text-left">
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Total Case:-
-                  {{indiaTotal}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Indian:-
-                  {{confirmedCasesIndian}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
-                  Conf. Foreigner:-
-                  {{confirmedCasesForeign}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="success"></b-icon>
-                  Discharged:-
-                  {{indianDischarged}}
-                  <br />
-                  <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
-                  Deaths:-
-                  {{indianDeaths}}
+                  Total Case
+                  <h4>{{ indiaTotal }}</h4>
+                  Conf. Indian
+                  <h4>{{ confirmedCasesIndian }}</h4>
+                  Conf. Foreigner
+                  <h4>{{ confirmedCasesForeign }}</h4>
+                  Discharged
+                  <h4>{{ indianDischarged }}</h4>
+                  Deaths
+                  <h4>{{ indianDeaths }}</h4>
                 </b-card-text>
               </b-card>
             </div>
@@ -39,6 +36,13 @@
         </div>
       </div>
     </div>
+    <br />
+    <p>
+      <i>
+        Source:-
+        <a href="https://www.mygov.in/covid-19/?cbps=1">COVID-19 | MyGov.in</a>
+      </i>
+    </p>
     <hr />
 
     <h3 class="home-page-title">State Wise Statistics</h3>
@@ -50,7 +54,9 @@
         placeholder="Search your state"
         v-model="stateName"
       ></b-form-input>
-      <b-button size="sm" class="mBtn" type="submit" @click="searchState">Search</b-button>
+      <b-button size="sm" class="mBtn" type="submit" @click="searchState"
+        >Search</b-button
+      >
     </div>
     <br />
     <div class="col-lg-12 col-md-12 col-sm-12 mx-auto">
@@ -63,23 +69,40 @@
               class="h-100 mx-auto shadow mb-2 rounded"
             >
               <b-card-text class="text-left">
-                <h6 class="text-center font-weight-bold">{{state.loc}}</h6>
-                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
+                <h5 class="font-weight-bold">{{ state.loc }}</h5>
+                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>&nbsp;
                 <span class="font-weight-bold">Total Case:-</span>
-                {{state.totalConfirmed}}
+                {{ state.totalConfirmed }}
                 <br />
-                <b-icon icon="plus-circle-fill" variant="warning"></b-icon>
+                <b-icon icon="plus-circle-fill" variant="warning"></b-icon
+                >&nbsp;
                 <span class="font-weight-bold">Conf. Cases:-</span>
-                {{state.totalConfirmed}}
+                {{ state.totalConfirmed }}
                 <br />
-                <b-icon icon="plus-circle-fill" variant="success"></b-icon>
+                <b-icon icon="plus-circle-fill" variant="success"></b-icon
+                >&nbsp;
                 <span class="font-weight-bold">Recovered:-</span>
-                {{state.discharged}}
+                {{ state.discharged }}
                 <br />
-                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>
+                <b-icon icon="plus-circle-fill" variant="danger"></b-icon>&nbsp;
                 <span class="font-weight-bold">Deaths:-</span>
-                {{state.deaths}}
+                {{ state.deaths }}
               </b-card-text>
+              <!-- <b-card-text class="text-left">
+                <h5 class="font-weight-bold">{{state.loc}}</h5>
+
+                <span class="font-weight-bold">Total Case:-</span>
+                <h4>{{state.totalConfirmed}}</h4>
+
+                <span class="font-weight-bold">Conf. Cases:-</span>
+                <h4>{{state.totalConfirmed}}</h4>
+
+                <span class="font-weight-bold">Recovered:-</span>
+                <h4>{{state.discharged}}</h4>
+
+                <span class="font-weight-bold">Deaths:-</span>
+                <h4>{{state.deaths}}</h4>
+              </b-card-text>-->
             </b-card>
           </div>
         </div>
@@ -90,7 +113,9 @@
 
 <script>
 import { mapState } from 'vuex'
-
+import Loading from 'vue-loading-overlay'
+// Import stylesheet
+import 'vue-loading-overlay/dist/vue-loading.css'
 export default {
   data() {
     return {
@@ -102,12 +127,18 @@ export default {
       indianDeaths: null,
       statewiseDetails: [],
       tempStates: null,
-      stateName: null
+      stateName: null,
+      isLoading: false,
+      fullPage: true
       // api:'http://api.go/API/ParentApp/V1/'
     }
   },
+  components: {
+    Loading
+  },
   computed: mapState('app', ['appTitle']),
   created() {
+    this.showLoader()
     this.fetchIndiaDetails()
   },
   methods: {
@@ -142,6 +173,13 @@ export default {
       this.tempStates = this.statewiseDetails.filter(state => {
         return state.loc.toLowerCase().includes(this.stateName.toLowerCase())
       })
+    },
+    showLoader() {
+      this.isLoading = true
+      // simulate AJAX
+      setTimeout(() => {
+        this.isLoading = false
+      }, 2000)
     }
   }
 }
