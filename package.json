@@ -45,7 +45,7 @@
     "babel-jest": "^24.9.0",
     "babel-plugin-lodash": "^3.3.4",
     "bundlesize": "github:kefranabg/bundlesize",
-    "firebase-tools": "^7.6.2",
+    "firebase-tools": "^12.4.3",
     "node-sass": "^4.12.0",
     "prerender-spa-plugin": "^3.4.0",
     "sass-loader": "^8.0.0",
